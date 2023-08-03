@@ -164,3 +164,4 @@ tags
 .php-cs-fixer.cache
 
 # End of https://www.toptal.com/developers/gitignore/api/phpstorm,vim,vagrant,git
+src/.env
