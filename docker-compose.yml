@@ -1,0 +1,67 @@
+napa_server:
+  build: ./src
+  dockerfile: ./docker/dockerfile
+  container_anme: laravel_app
+  working_dir: /var/www/html
+  ports:
+    - "80:80"
+  volumes:
+    - ./src:/var/www/html
+    - ./docker/nginx_log:/var/log/nginx
+    - ./docker/php-fpm/php-fpm.log:/var/log/php-fpm.log
+    - ./docker/config/app.conf:/etc/nginx/conf.d/app.conf
+db:
+  image: mysql:8.0.30-debian
+  command:
+    - mysqld
+    - --character-set-server=utf8mb4
+    - --collation-server=utf8mb4_general_ci
+    - --disable-log-bin
+    - --ngram_token_size=2
+    - --innodb_ft_min_token_size=1
+    - --ft_min_word_len=1
+    - --innodb_ft_enable_stopword=OFF
+    - --innodb_buffer_pool_size=${DB_BUFFER_POOL_SIZE:-128M}
+  ports:
+    - ${DB_PORT:-13306}:3306
+  environment:
+    - TZ=Asia/Tokyo
+    - MYSQL_DATABASE=${DB_NAME:-database}
+    - MYSQL_USER=${DB_USER:-db_user}
+    - MYSQL_PASSWORD=${DB_PASS:-db_password}
+    - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASS:-db_root_password}
+  volumes:
+    - db-store:/var/lib/mysql
+db-test:
+  image: mysql:8.0.30-debian
+  command:
+    - mysqld
+    - --character-set-server=utf8mb4
+    - --collation-server=utf8mb4_general_ci
+    - --disable-log-bin
+    - --ngram_token_size=2
+    - --innodb_ft_min_token_size=1
+    - --ft_min_word_len=1
+    - --innodb_ft_enable_stopword=OFF
+    - --innodb_buffer_pool_size=${TEST_DB_BUFFER_POOL_SIZE:-128M}
+  ports:
+    - ${TEST_DB_PORT:-13307}:3306
+  environment:
+    - TZ=Asia/Tokyo
+    - MYSQL_DATABASE=${TEST_DB_NAME:-database_test}
+    - MYSQL_USER=${DB_USER:-db_user}
+    - MYSQL_PASSWORD=${DB_PASS:-db_password}
+    - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASS:-db_root_password}
+  volumes:
+    - db-test-store:/var/lib/mysql
+minio:
+  image: "minio/minio:RELEASE.2022-02-12T00-51-25Z"
+  command: server /data --console-address "${MINIO_PORT_CONSOLE_FOR_COMMAND:-:9001}"
+  ports:
+    - ${MINIO_PORT_API:-9000}:9000
+    - ${MINIO_PORT_CONSOLE:-9001}:9001
+  environment:
+    - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minio_root_user}
+    - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minio_root_password}
+  volumes:
+    - minio-store:/data
