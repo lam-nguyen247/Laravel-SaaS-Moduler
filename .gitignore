@@ -166,3 +166,6 @@ tags
 # End of https://www.toptal.com/developers/gitignore/api/phpstorm,vim,vagrant,git
 src/.env
 src/.env.local
+
+docker/storage
+storage

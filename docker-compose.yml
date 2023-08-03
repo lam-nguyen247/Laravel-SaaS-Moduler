@@ -1,75 +1,87 @@
-napa_server:
-  build: .
-  dockerfile: ./docker/Dockerfile
-  container_name: laravel_app
-  ports:
-    - "24794:80"
-  volumes:
-    - ./src:/var/www/html
-    - ./docker/nginx_log:/var/log/nginx
-    - ./docker/php-fpm/php-fpm.log:/var/log/php-fpm.log
-    - ./docker/nginx/default.conf:/etc/nginx/sites-available/default.conf
-  environment:
-    TZ: Asia/Hanoi
-    PHP_INI_OPCACHE_ENABLE: 1
-    PHP_INI_OPCACHE_ENABLE_CLI: 1
-    PHP_INI_OPCACHE_JIT: tracing
-    PHP_INI_OPCACHE_JIT_BUFFER_SIZE: 128M
-    XDEBUG_MODE: coverage,debug
+version: "3.8"
+networks:
+  external:
+    driver: bridge
+    internal: false
+volumes:
+  php-fpm-socket:
+  db-store:
+  db-test-store:
+  minio-store:
+services:
+  napa_server:
+    build: ./docker
+    container_name: laravel_app
+    ports:
+      - "24794:80"
+    volumes:
+      - php-fpm-socket:/var/run/php-fpm
+      - ./docker/php/php.ini://usr/local/etc/php/php.ini
+      - ./src:/var/www/html
+      - ./docker/nginx_log:/var/log/nginx
+      - ./docker/php-fpm/php-fpm.log:/var/log/php-fpm.log
+      - ./docker/nginx/default.conf:/etc/nginx/sites-available/default.conf
+    environment:
+      TZ: Asia/Hanoi
+      PHP_INI_OPCACHE_ENABLE: 1
+      PHP_INI_OPCACHE_ENABLE_CLI: 1
+      PHP_INI_OPCACHE_JIT: tracing
+      PHP_INI_OPCACHE_JIT_BUFFER_SIZE: 128M
+      XDEBUG_MODE: coverage,debug
 
-db:
-  image: mysql
-  command:
-    - mysqld
-    - --character-set-server=utf8mb4
-    - --collation-server=utf8mb4_general_ci
-    - --disable-log-bin
-    - --ngram_token_size=2
-    - --innodb_ft_min_token_size=1
-    - --ft_min_word_len=1
-    - --innodb_ft_enable_stopword=OFF
-    - --innodb_buffer_pool_size=128M
-  ports:
-    - 23306:3306
-  environment:
-    - TZ=Asia/Hanoi
-    - MYSQL_DATABASE=napa_ut
-    - MYSQL_USER=db_user
-    - MYSQL_PASSWORD=db_password
-    - MYSQL_ROOT_PASSWORD=db_root_password
-  volumes:
-    - db-store:/var/lib/mysql
-db-test:
-  image: mysql
-  command:
-    - mysqld
-    - --character-set-server=utf8mb4
-    - --collation-server=utf8mb4_general_ci
-    - --disable-log-bin
-    - --ngram_token_size=2
-    - --innodb_ft_min_token_size=1
-    - --ft_min_word_len=1
-    - --innodb_ft_enable_stopword=OFF
-    - --innodb_buffer_pool_size=128M
-  ports:
-    - 23307:3306
-  environment:
-    - TZ=Asia/Hanoi
-    - MYSQL_DATABASE=napa_ui_test
-    - MYSQL_USER=db_user
-    - MYSQL_PASSWORD=db_password
-    - MYSQL_ROOT_PASSWORD=db_root_password
-  volumes:
-    - db-test-store:/var/lib/mysql
-minio:
-  image: minio/minio
-  container_name: minio
-  ports:
-    - 9990:9000
-    - 9991:9001
-  environment:
-    - MINIO_ROOT_USER=minio_root_user
-    - MINIO_ROOT_PASSWORD=minio_root_password
-  volumes:
-    - minio-store:/data
-  command: server --console-address ":9001" /data
+  db:
+    image: mysql
+    command:
+      - mysqld
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+      - --disable-log-bin
+      - --ngram_token_size=2
+      - --innodb_ft_min_token_size=1
+      - --ft_min_word_len=1
+      - --innodb_ft_enable_stopword=OFF
+      - --innodb_buffer_pool_size=128M
+    ports:
+      - 23306:3306
+    environment:
+      - TZ=Asia/Hanoi
+      - MYSQL_DATABASE=napa_ut
+      - MYSQL_USER=db_user
+      - MYSQL_PASSWORD=db_password
+      - MYSQL_ROOT_PASSWORD=db_root_password
+    volumes:
+      - db-store:/var/lib/mysql
+  db-test:
+    image: mysql
+    command:
+      - mysqld
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+      - --disable-log-bin
+      - --ngram_token_size=2
+      - --innodb_ft_min_token_size=1
+      - --ft_min_word_len=1
+      - --innodb_ft_enable_stopword=OFF
+      - --innodb_buffer_pool_size=128M
+    ports:
+      - 23307:3306
+    environment:
+      - TZ=Asia/Hanoi
+      - MYSQL_DATABASE=napa_ui_test
+      - MYSQL_USER=db_user
+      - MYSQL_PASSWORD=db_password
+      - MYSQL_ROOT_PASSWORD=db_root_password
+    volumes:
+      - db-test-store:/var/lib/mysql
+  minio:
+    image: minio/minio
+    container_name: minio
+    command: server /data --console-address "localhost:9001"
+    ports:
+      - 9990:9000
+      - 9991:9001
+    environment:
+      - MINIO_ROOT_USER=minio_root_user
+      - MINIO_ROOT_PASSWORD=minio_root_password
+    volumes:
+      - minio-store:/data
