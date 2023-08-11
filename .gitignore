@@ -26,3 +26,9 @@ src/.env.local
 
 docker/storage
 storage
+src/.DS_Store
+*.log
+docker/nginx_log
+src/.phpunit.result.cache
+.DS_Store
+src/public/reports

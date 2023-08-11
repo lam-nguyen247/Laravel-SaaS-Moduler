@@ -13,7 +13,7 @@ services:
     build: ./docker
     container_name: laravel_app
     ports:
-      - "24794:80"
+      - "80:80"
     volumes:
       - php-fpm-socket:/var/run/php-fpm
       - ./docker/php/php.ini://usr/local/etc/php/php.ini
@@ -76,10 +76,10 @@ services:
   minio:
     image: minio/minio
     container_name: minio
-    command: server /data --console-address "localhost:9001"
+    command: server /data --console-address ":9003"
     ports:
-      - 9990:9000
-      - 9991:9001
+      - "9003:9003"
+      - "9004:9004"
     environment:
       - MINIO_ROOT_USER=minio_root_user
       - MINIO_ROOT_PASSWORD=minio_root_password
