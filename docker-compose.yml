@@ -30,49 +30,16 @@ services:
       XDEBUG_MODE: coverage,debug
 
   db:
-    image: mysql
-    command:
-      - mysqld
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_general_ci
-      - --disable-log-bin
-      - --ngram_token_size=2
-      - --innodb_ft_min_token_size=1
-      - --ft_min_word_len=1
-      - --innodb_ft_enable_stopword=OFF
-      - --innodb_buffer_pool_size=128M
+    image: mysql:8.0
     ports:
       - 23306:3306
+    command: --explicit_defaults_for_timestamp
     environment:
       - TZ=Asia/Hanoi
       - MYSQL_DATABASE=napa_ut
-      - MYSQL_USER=db_user
-      - MYSQL_PASSWORD=db_password
       - MYSQL_ROOT_PASSWORD=db_root_password
     volumes:
-      - db-store:/var/lib/mysql
-  db-test:
-    image: mysql
-    command:
-      - mysqld
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_general_ci
-      - --disable-log-bin
-      - --ngram_token_size=2
-      - --innodb_ft_min_token_size=1
-      - --ft_min_word_len=1
-      - --innodb_ft_enable_stopword=OFF
-      - --innodb_buffer_pool_size=128M
-    ports:
-      - 23307:3306
-    environment:
-      - TZ=Asia/Hanoi
-      - MYSQL_DATABASE=napa_ui_test
-      - MYSQL_USER=db_user
-      - MYSQL_PASSWORD=db_password
-      - MYSQL_ROOT_PASSWORD=db_root_password
-    volumes:
-      - db-test-store:/var/lib/mysql
+      - db-store:/docker-entrypoint-initdb.d
   minio:
     image: minio/minio
     container_name: minio

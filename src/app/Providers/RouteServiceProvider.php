@@ -28,6 +28,9 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
+        $this->mapApiRoutes();
+        $this->mapWebRoutes();
+
         $this->routes(function () {
             Route::middleware('api')
                 ->prefix('api')
@@ -36,5 +39,24 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
         });
+    }
+
+    protected function mapWebRoutes()
+    {
+        foreach (glob(base_path('app/Modules/*/Routes/web.php')) as $file) {
+            Route::middleware('web')
+                ->namespace($this->namespace)
+                ->group($file);
+        }
+    }
+
+    protected function mapApiRoutes()
+    {
+        foreach (glob(base_path('app/Modules/*/Routes/api.php')) as $file) {
+            Route::prefix('api')
+                ->middleware('api')
+                ->namespace($this->namespace)
+                ->group($file);
+        }
     }
 }
