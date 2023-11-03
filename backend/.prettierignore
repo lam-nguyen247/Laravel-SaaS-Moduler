@@ -1,0 +1,26 @@
+# laravel-app
+app
+bootstrap
+config
+database
+node_modules
+public
+resources
+routes
+storage
+tests
+vendor
+.babelrc
+composer.json
+composer.lock
+package.json
+yarn.lock
+webpack.mix.js
+readme.md
+# frontend
+frontend/dist
+frontend/.eslintrc.js
+frontend/dev/assets/vendor
+frontend/node_modules
+frontend/src/node_modules
+frontend/src/views/vuexy/
