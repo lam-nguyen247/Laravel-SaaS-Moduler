@@ -12,37 +12,38 @@ use Illuminate\Queue\SerializesModels;
 
 class NotificationMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     /**
-     * @var from
+     * @var mixed $mailFrom
      */
-    public $mailFrom;
+    public mixed $mailFrom;
 
     /**
-     * @var view
+     * @var mixed $mailView
      */
-    public $mailView;
+    public mixed $mailView;
 
     /**
-     * @var params
+     * @var mixed $params
      */
-    public $params;
+    public mixed $params;
 
     /**
-     * @var subject
+     * @var mixed $mailSubject
      */
-    public $mailSubject;
+    public mixed $mailSubject;
 
     /**
      * Create a new message instance.
      *
+     * @param  mixed $mailView
+     * @param  mixed $mailSubject
+     * @param  mixed $params
      * @return void
-     * @param mixed $mailView
-     * @param mixed $mailSubject
-     * @param mixed $params
      */
-    public function __construct($mailView, $mailSubject, $params)
+    public function __construct(mixed $mailView, mixed $mailSubject, mixed $params)
     {
         $this->mailFrom = config('mail.from.address');
         $this->mailView = $mailView;

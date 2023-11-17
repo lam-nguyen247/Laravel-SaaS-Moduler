@@ -13,8 +13,8 @@ class Controller extends BaseController
 {
     use AuthorizesRequests;
     use DispatchesJobs;
-    use ValidatesRequests;
     use ResponseTrait;
+    use ValidatesRequests;
 
     public function __construct()
     {

@@ -10,21 +10,26 @@ class Admin extends Authenticatable implements JWTSubject
 {
     use HasFactory;
 
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'administractors';
+    protected $table = 'administrators';
 
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
         'email',
-        'phone',
-        'address',
         'password',
+        'address',
+        'status',
+        'phone_country_code',
+        'number_phone',
+        'token',
+        'properties',
+        'created_by',
+        'updated_by',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
-    
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -33,6 +38,15 @@ class Admin extends Authenticatable implements JWTSubject
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'password' => 'hashed',
     ];
 
     /**

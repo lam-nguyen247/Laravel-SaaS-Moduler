@@ -14,7 +14,7 @@ $config = new PhpCsFixer\Config();
 
 return $config
     ->setRules([
-        '@PSR2' => true,
+        '@PSR12' => true,
         // Arrays are written as [] instead of array()
         'array_syntax' => true,
         // For simple strings, single quotes are preferred

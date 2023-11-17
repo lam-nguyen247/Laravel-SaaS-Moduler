@@ -91,7 +91,7 @@ php artisan make:module Subscription model Subscription
 -   Tên route nên sử dụng dạng kebab-case và phản ánh tính năng hoặc hành động mà nó thực hiện: <br>
     {module}.{controller}.{action} <br>
     Ví dụ: <br>
-    `supper-admin.auth.user-profile`.
+    `super-admin.auth.user-profile`.
 
 ### Views
 
@@ -216,5 +216,33 @@ $status = match ($value) {
 };
 
 $result = $object?->property ?? 'default';
+
+```
+
+# Quy trình kiểm tra coding convention trước khi push commit
+
+## Chạy tool auto fix với Laravel Pint
+
+```
+//Chạy lệnh composer trong môi trường docker hoặc local
+composer pint-fixed
+```
+
+## Kiểm tra sâu với PHPStan
+
+```
+//Chạy lệnh composer trong môi trường docker hoặc local
+composer check
+```
+
+Để bỏ qua việc kiểm tra một số dòng code cụ thể bởi PHPStan, bạn có thể sử dụng một trong những cách sau:
+
+Sử dụng PHPDoc Comments: Bạn có thể sử dụng comment PHPDoc để bảo PHPStan bỏ qua một dòng hoặc một khối code cụ thể. Để làm điều này, thêm một comment `@phpstan-ignore-line` vào cuối dòng mà bạn muốn bỏ qua, hoặc `@phpstan-ignore-next-line` trước dòng đó.
+
+```php
+$result = someFunction(); // @phpstan-ignore-line
+
+// @phpstan-ignore-next-line
+$result = someFunction();
 
 ```

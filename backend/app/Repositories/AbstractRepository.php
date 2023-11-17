@@ -4,25 +4,21 @@ namespace App\Repositories;
 
 use Closure;
 use Exception;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 abstract class AbstractRepository
 {
     /**
-     * Name of the Model with absolute namespace
-     *
-     * @var string
-     */
-    protected $modelName;
-
-    /**
      * Instance that extends Illuminate\Database\Eloquent\Model
      *
-     * @var Builder|Model
+     * @var Builder|Model|Authenticatable
      */
-    protected $model;
+    protected Builder|Model|Authenticatable $model;
 
     /**
      * AbstractRepository constructor.
@@ -34,17 +30,17 @@ abstract class AbstractRepository
     /**
      * Get Model instance
      *
-     * @return Builder|Model
+     * @return Builder|Model|Authenticatable
      */
-    public function getModel()
+    public function getModel(): Builder|Model|Authenticatable
     {
         return $this->model;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    public function findOne($id, array $relations = null)
+    public function findOne($id, array $relations = null): ?Model
     {
         $builder = null;
 
@@ -53,34 +49,36 @@ abstract class AbstractRepository
                 return $builder->with($relations);
             };
         }
+
         return $this->findOneBy(['id' => $id], $builder);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    public function findOneBy(array $criteria, Closure $builder = null)
+    public function findOneBy(array $criteria, Closure $builder = null): ?Model
     {
         $queryBuilder = $this->model->where($criteria);
 
         if (is_callable($builder)) {
             $builder($queryBuilder);
         }
+
         return $queryBuilder->first();
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    public function findBy(array $searchCriteria = [], Closure $builder = null, $paginate = true)
+    public function findBy(array $searchCriteria = [], Closure $builder = null, bool $isPaginate = true): Collection|LengthAwarePaginator
     {
-        $limit = $searchCriteria['limit'] ?? 15; // it's needed for pagination
+        $limit = $searchCriteria['limit'] ?? config('constant.limit', 15); // it's needed for pagination
         $filter = $searchCriteria['filter'] ?? [];
         $sort = $searchCriteria['sort'] ?? null;
         $except = $searchCriteria['except'] ?? [];
         $exceptNull = $searchCriteria['exceptNull'] ?? [];
 
-        $queryBuilder = $this->model->where(function ($query) use ($filter, $sort, $except, $exceptNull) {
+        $queryBuilder = $this->model->where(function ($query) use ($filter, $except, $exceptNull) {
             $this->applySearchCriteriaInQueryBuilder($query, $filter, $except, $exceptNull);
         });
 
@@ -90,7 +88,7 @@ abstract class AbstractRepository
             $builder($queryBuilder);
         }
 
-        if ($paginate) {
+        if ($isPaginate) {
             return $queryBuilder->paginate($limit);
         }
 
@@ -98,17 +96,17 @@ abstract class AbstractRepository
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    public function save(array $data): Model|Builder
+    public function create(array $data): Model|Builder
     {
         return $this->model->create($data);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    public function update(Model $model, array $data, string $connection = 'mysql')
+    public function update(Model $model, array $data, string $connection = 'mysql'): ?Model
     {
         $fillAbleProperties = $this->model->getFillable();
 
@@ -125,6 +123,7 @@ abstract class AbstractRepository
         if ($connection === 'mongodb') {
             $model = $this->findOneBy($data);
         } else {
+            // @phpstan-ignore-next-line
             $model = $this->findOne($model->id);
         }
 
@@ -132,61 +131,88 @@ abstract class AbstractRepository
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    public function findIn($key, array $values)
+    public function findIn($key, array $values): Collection
     {
         return $this->model->whereIn($key, $values)->get();
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    public function findNotNull($key)
+    public function findNotNull($key): Collection
     {
         return $this->model->whereNotNull($key)->get();
     }
 
     /**
-     * @throws Exception
+     * Delete the model from the database.
+     *
+     * @return bool|null
+     *
+     * @throws \LogicException
      */
     public function delete(Model $model): ?bool
     {
         return $model->delete();
     }
 
-    public function firstOrCreate(array $data = []): Model|Builder
-    {
-        return $this->model->firstOrCreate($data);
-    }
-
-    public function firstOrNew(array $data = []): Model|Builder
-    {
-        return $this->model->firstOrNew($data);
-    }
-
     /**
-     * @return Builder|Builder[]|Collection|Model|null
-     */
-    public function findOrFail(int $id)
-    {
-        return $this->model->findOrFail($id);
-    }
-
-    /**
-     * Update or create model
+     * Get the first record matching the attributes. If the record is not found, create it.
      *
-     * @return array
+     * @param  array $attributes
+     * @param  array $values
+     * @return Model
      */
-    public function updateOrCreate(array $key, array $data)
+    public function firstOrCreate(array $attributes, array $values): Model
     {
-        return $this->model->updateOrCreate($key, $data);
+        return $this->model->firstOrCreate($attributes, $values);
+    }
+
+    /**
+     * Get the first record matching the attributes or instantiate it.
+     *
+     * @param  array $attributes
+     * @param  array $values
+     * @return Model
+     */
+    public function firstOrNew(array $attributes, array $values): Model
+    {
+        return $this->model->firstOrNew($attributes, $values);
+    }
+
+    /**
+     * Find a model by its primary key or throw an exception.
+     *
+     * @param  mixed        $id
+     * @param  array|string $columns
+     * @return Collection
+     *
+     * @throws ModelNotFoundException
+     */
+    public function findOrFail(mixed $id, array|string $columns = ['*']): Model|Collection
+    {
+        return $this->model->findOrFail($id, $columns);
+    }
+
+    /**
+     * Create or update a record matching the attributes, and fill it with values.
+     *
+     * @param  array $attributes
+     * @param  array $values
+     * @return Model
+     */
+    public function updateOrCreate(array $attributes, array $values): Model
+    {
+        return $this->model->updateOrCreate($attributes, $values);
     }
 
     /**
      * Set model data
+     * @param Builder|Model $model
      */
-    public function setModel(Model $model)
+    public function setModel(Builder|Model $model)
     {
         $this->model = $model;
     }
@@ -219,6 +245,7 @@ abstract class AbstractRepository
                         foreach ($orWhere as $key) {
                             $query->orWhere($key, $operator, $value);
                         }
+
                         return $query;
                     });
                 } else {
@@ -241,30 +268,93 @@ abstract class AbstractRepository
     /**
      * Apply condition on query builder based on search criteria
      *
-     * @param null $sortString
+     * @param Builder $queryBuilder
+     * @param string  $sortString
      */
-    protected function applySortingInQueryBuilder(Builder $queryBuilder, $sortString = ''): Builder
+    protected function applySortingInQueryBuilder(Builder $queryBuilder, string $sortString = ''): Builder
     {
         $sortFields = explode(',', $sortString);
 
-        if (count($sortFields) > 0) {
-            foreach ($sortFields as $field) {
-                if (empty($field)) {
-                    continue;
-                }
+        foreach ($sortFields as $field) {
+            if (empty($field)) {
+                continue;
+            }
 
-                if (strpos($field, '-') === 0) {
-                    $field = substr($field, 1);
+            if (strpos($field, '-') === 0) {
+                $field = substr($field, 1);
 
-                    if ($field) {
-                        $queryBuilder->orderByDesc($field);
-                    }
-                } else {
-                    $queryBuilder->orderBy($field);
+                if ($field) {
+                    $queryBuilder->orderByDesc($field);
                 }
+            } else {
+                $queryBuilder->orderBy($field);
             }
         }
 
         return $queryBuilder;
+    }
+
+    /**
+     * Get records with conditions
+     *
+     * @param string|array|null $selects
+     * @param string|array|null $relations
+     * @param array             $conditions
+     * @param array             $orderBys
+     *
+     * @return Collection|array
+     */
+    public function getWithConditions(string|array $selects = null, string|array|null $relations = [], array $conditions = null, array $orderBys = null): Collection|array
+    {
+        $query = $this->model->with($relations === '' ? [] : $relations);
+
+        if ($selects) {
+            $query->select($selects);
+        }
+
+        if (is_array($conditions)) {
+            $query->where($conditions);
+        }
+
+        if (is_array($orderBys)) {
+            foreach ($orderBys as $column => $direction) {
+                $query->orderBy($column, $direction);
+            }
+        }
+
+        return $query->get();
+    }
+
+    /**
+     * Get records with conditions
+     *
+     * @param string            $id
+     * @param string|array|null $selects
+     * @param string|array|null $relations
+     *
+     * @return Collection
+     */
+    public function getOneWithRelations(string $id, string|array $selects = null, string|array|null $relations = []): Collection
+    {
+        $query = $this->model->find($id)->with($relations === '' ? [] : $relations);
+
+        if ($selects) {
+            $query->select($selects);
+        }
+
+        return $query->get();
+    }
+
+    /**
+     * Paginate the given query.
+     *
+     * @param  int|null|\Closure    $perPage
+     * @return LengthAwarePaginator
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function getPaginate(int|null|\Closure $perPage): LengthAwarePaginator
+    {
+        return $this->model->paginate($perPage);
     }
 }

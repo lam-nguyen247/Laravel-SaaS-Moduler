@@ -53,7 +53,6 @@ class Handler extends ExceptionHandler
         'password_confirmation',
     ];
 
-
     /**
      * Register the exception handling callbacks for the application.
      */
@@ -67,7 +66,7 @@ class Handler extends ExceptionHandler
             }
             if (config('exception.notification_mail.enabled') && $this->shouldSendErrorNotificationMail($e)) {
                 // Output it to the log as well (if error email sending fails, it will be difficult to investigate the cause)
-                logs()->error('[Error email sent]'. $e->getMessage(), [$e->getTraceAsString()]);
+                logs()->error('[Error email sent]' . $e->getMessage(), [$e->getTraceAsString()]);
                 // Send error notification email
                 $this->sendErrorNotificationMail($e);
             }
@@ -82,14 +81,14 @@ class Handler extends ExceptionHandler
     }
 
     /**
-    * Render an exception into an HTTP response.
-    *
-    * @param Request $request
-    * @param Throwable $e
-    * @return Response
-    *
-    * @throws Throwable
-    */
+     * Render an exception into an HTTP response.
+     *
+     * @param  Request   $request
+     * @param  Throwable $e
+     * @return Response
+     *
+     * @throws Throwable
+     */
     public function render($request, Throwable $e): Response
     {
         if ($request->is('api/*')) {
@@ -101,10 +100,20 @@ class Handler extends ExceptionHandler
         return parent::render($request, $e);
     }
 
-    private function renderApi($request, Request|Throwable $e): Response
+    /**
+     * Render an exception into an HTTP response.
+     *
+     * @param  Request           $request
+     * @param  Request|Throwable $e
+     * @return Response
+     *
+     * @throws Throwable
+     */
+    private function renderApi(Request $request, Request|Throwable $e): Response
     {
         // 404 Not Found
         if ($this->isHttpException($e)) {
+            //@phpstan-ignore-next-line
             if ($e->getStatusCode() === Response::HTTP_NOT_FOUND) {
                 return $this->generateErrorJsonResponse(Response::HTTP_NOT_FOUND);
             }
@@ -159,14 +168,14 @@ class Handler extends ExceptionHandler
         Mail::send(new ErrorNotificationMail($e));
     }
 
-
-    private function generateErrorJsonResponse(int $statusCode, ?string $message = null): JsonResponse
+    private function generateErrorJsonResponse(int $statusCode, string $message = null): JsonResponse
     {
         $message = $message ?: Response::$statusTexts[$statusCode];
         $data = [
             'status_code' => $statusCode,
             'message' => $message,
         ];
+
         return response()->json($data, $statusCode);
     }
 }

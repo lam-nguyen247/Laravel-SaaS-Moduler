@@ -34,8 +34,8 @@ class ModuleMakeCommand extends Command
         $modulePath = app_path('Modules/' . $moduleName);
 
         // Tạo thư mục Controllers nếu chưa tồn tại
-        if (!is_dir($modulePath . '/' .$folder)) {
-            mkdir($modulePath . '/' .$folder, 0755, true);
+        if (!is_dir($modulePath . '/' . $folder)) {
+            mkdir($modulePath . '/' . $folder, 0755, true);
         }
 
         $this->call("make:$type", [

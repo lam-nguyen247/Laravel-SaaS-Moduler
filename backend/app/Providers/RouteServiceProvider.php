@@ -38,16 +38,16 @@ class RouteServiceProvider extends ServiceProvider
 
             $this->mapFrontRoutes();
             $this->mapAdminRoutes();
-            $this->mapSupperAdminRoutes();
+            $this->mapSuperAdminRoutes();
             $this->mapModuleRoutes();
         });
     }
 
     /**
-    * Define the "front" routes for the application..
-    *
-    * @return void
-    */
+     * Define the "front" routes for the application..
+     *
+     * @return void
+     */
     protected function mapFrontRoutes()
     {
         Route::prefix('api/front')
@@ -56,10 +56,10 @@ class RouteServiceProvider extends ServiceProvider
     }
 
     /**
-    * Define the "admin" routes for the application..
-    *
-    * @return void
-    */
+     * Define the "admin" routes for the application..
+     *
+     * @return void
+     */
     protected function mapAdminRoutes()
     {
         Route::prefix('api/admin')
@@ -68,15 +68,15 @@ class RouteServiceProvider extends ServiceProvider
     }
 
     /**
-    * Define the "supper admin" routes for the application..
-    *
-    * @return void
-    */
-    protected function mapSupperAdminRoutes()
+     * Define the "super admin" routes for the application..
+     *
+     * @return void
+     */
+    protected function mapSuperAdminRoutes()
     {
-        Route::prefix('api/supper-admin')
+        Route::prefix('api/super-admin')
             ->namespace($this->namespace)
-            ->group(base_path('routes/apiSupperAdmin.php'));
+            ->group(base_path('routes/apiSuperAdmin.php'));
     }
 
     protected function mapModuleRoutes()

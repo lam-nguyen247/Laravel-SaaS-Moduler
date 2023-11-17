@@ -11,7 +11,7 @@ use League\Fractal\TransformerAbstract;
 abstract class AbstractTransformer extends TransformerAbstract
 {
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      *
      * @throws Exception
      */
@@ -20,11 +20,12 @@ abstract class AbstractTransformer extends TransformerAbstract
         if (!$resourceKey) {
             throw new Exception('Missing resource key');
         }
+
         return parent::collection($data, $transformer, $resourceKey);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      *
      * @throws Exception
      */
@@ -38,7 +39,7 @@ abstract class AbstractTransformer extends TransformerAbstract
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      *
      * @throws Exception
      */

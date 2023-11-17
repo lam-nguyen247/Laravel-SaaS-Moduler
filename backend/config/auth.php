@@ -42,16 +42,16 @@ return [
         ],
         'front-api' => [
             'driver' => 'jwt',
-            'provider' => 'users'
+            'provider' => 'users',
         ],
         'admin-api' => [
             'driver' => 'jwt',
-            'provider' => 'admins'
+            'provider' => 'admins',
         ],
-        'supper-admin' => [
+        'super-admin' => [
             'driver' => 'jwt',
-            'provider' => 'supper-admins'
-        ]
+            'provider' => 'super-admins',
+        ],
     ],
 
     /*
@@ -80,9 +80,9 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\Admin::class,
         ],
-        'supper-admins' => [
+        'super-admins' => [
             'driver' => 'eloquent',
-            'model' => App\Models\SupperAdmin::class,
+            'model' => App\Models\SuperAdmin::class,
         ],
 
         // 'users' => [
@@ -123,9 +123,9 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
-        'supper-admins' => [
-            'provider' => 'supper-admins',
-            'table' => 'supper_admin_password_reset_tokens',
+        'super-admins' => [
+            'provider' => 'super-admins',
+            'table' => 'super_admin_password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,
         ],
