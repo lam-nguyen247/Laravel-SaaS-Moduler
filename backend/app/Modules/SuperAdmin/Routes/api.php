@@ -30,6 +30,8 @@ Route::group(['prefix' => 'super-admin'], function () {
         Route::get('/admins/{id}', [AdminManagementController::class, 'detail'])->name('super-admin.detail');
         Route::patch('block-admin', [AdminManagementController::class, 'block'])->name('supper-admin.block-admin');
         Route::patch('unblock-admin', [AdminManagementController::class, 'unblock'])->name('supper-admin.unblock-admin');
+        Route::delete('admins/{id}', [AdminManagementController::class, 'deleteAdmin'])->name('super-admin.delete-admin');
+        Route::put('admins/{id}', [AdminManagementController::class, 'editAdmin'])->name('super-admin.edit-admin');
 
         Route::group(['prefix' => 'roles'], function () {
             Route::get('/', [RoleController::class, 'index'])->name('super-admin.role.all');
@@ -45,3 +47,5 @@ Route::group(['prefix' => 'super-admin'], function () {
         });
     });
 });
+
+Route::pattern('id', '\d+');

@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\User\Controllers\AuthenticateController;
+use App\Modules\User\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,8 +21,16 @@ Route::group(['prefix' => 'user'], function () {
     Route::post('forgot', [AuthenticateController::class, 'forgotPassword']);
     Route::post('reset', [AuthenticateController::class, 'resetPassword']);
 
+    Route::get('social-auth/{provider}', [AuthenticateController::class, 'redirectToProvider']);
+    Route::get('social-auth/{provider}/callback', [AuthenticateController::class, 'providerCallback']);
+
     Route::group(['middleware' => 'jwt_user.auth'], function () {
         Route::post('change-password', [AuthenticateController::class, 'changePassword']);
         Route::post('change-profile', [AuthenticateController::class, 'changeProfile']);
+        Route::get('me', [AuthenticateController::class, 'me']);
+
+        Route::group(['prefix' => 'subscription'], function () {
+            Route::get('/', [SubscriptionController::class, 'getHistory'])->name('user.subscription.history');
+        });
     });
 });

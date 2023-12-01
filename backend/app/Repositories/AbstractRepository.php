@@ -74,7 +74,7 @@ abstract class AbstractRepository
     {
         $limit = $searchCriteria['limit'] ?? config('constant.limit', 15); // it's needed for pagination
         $filter = $searchCriteria['filter'] ?? [];
-        $sort = $searchCriteria['sort'] ?? null;
+        $sort = $searchCriteria['sort'] ?? '';
         $except = $searchCriteria['except'] ?? [];
         $exceptNull = $searchCriteria['exceptNull'] ?? [];
 

@@ -15,6 +15,7 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthenticateController extends Controller
 {
@@ -135,7 +136,7 @@ class AuthenticateController extends Controller
     /**
      * reset password.
      *
-     * @param Request $request\
+     * @param Request $request
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -152,5 +153,44 @@ class AuthenticateController extends Controller
         }
 
         return $this->getSuccess();
+    }
+
+    /**
+     * Get user info
+     *
+     * @return JsonResponse
+     */
+    public function me(): JsonResponse
+    {
+        return $this->successApiResponse('Get successful', auth('front-api')->user());
+    }
+
+    /**
+     * Redirect social by provider.
+     *
+     * @param string $provider
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function redirectToProvider(string $provider): JsonResponse
+    {
+        return response()->json([
+            'redirectUrl' => Socialite::driver($provider)->stateless()->redirect()->getTargetUrl(),
+        ]);
+    }
+
+    public function providerCallback(string $provider)
+    {
+        try {
+            $token = $this->userService->handleCallbackSocial($provider);
+
+            if (is_null($token)) {
+                return $this->errorApiResponse(400, 'Account is block');
+            }
+
+            return $this->respondWithToken($token, 'front-api');
+        } catch (Exception $e) {
+            return $this->errorApiResponse(400, 'Cannot handle callback');
+        }
     }
 }

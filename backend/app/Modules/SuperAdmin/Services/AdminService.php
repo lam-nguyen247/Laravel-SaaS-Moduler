@@ -99,11 +99,35 @@ class AdminService
 
     /**
      * Find admin by id
+     *
      * @param  int   $id
      * @return Admin
      */
     public function findById(int $id)
     {
         return $this->adminRepository->findById($id);
+    }
+
+    /**
+     * delete admin
+     *
+     * @param  int  $id
+     * @return bool
+     */
+    public function deleteAdmin(int $id): bool
+    {
+        return $this->adminRepository->deleteAdmin($id);
+    }
+
+    /**
+     * edit admin by id
+     *
+     * @param  Admin $admin
+     * @param  array $data
+     * @return Admin
+     */
+    public function editAdmin($admin, $data): Admin
+    {
+        return $this->adminRepository->update($admin, $data);
     }
 }

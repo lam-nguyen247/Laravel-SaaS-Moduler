@@ -10,7 +10,6 @@ use App\Traits\ResponseTrait;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
-use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
@@ -49,7 +48,7 @@ class RoleController extends Controller
     {
         try {
             $input = $request->all();
-            $role = $this->roleService->create($input);
+            $role = $this->roleService->createRole($input);
 
             return $this->successApiResponse('Create Successfully', $role);
         } catch (Exception $e) {
@@ -115,7 +114,7 @@ class RoleController extends Controller
     public function destroy(string $id): JsonResponse
     {
         try {
-            $role = Role::with('permissions')->find($id);
+            $role = $this->roleService->findOne($id, ['permissions']);
             if (empty($role)) {
                 return $this->sendNotFoundResponse();
             }

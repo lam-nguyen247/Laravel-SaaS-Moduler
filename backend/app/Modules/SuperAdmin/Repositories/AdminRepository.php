@@ -56,4 +56,15 @@ class AdminRepository extends AbstractRepository
     {
         return $this->model->query()->find($id);
     }
+
+    /**
+     * delete by id
+     *
+     * @param  int  $id
+     * @return bool
+     */
+    public function deleteAdmin($id): bool
+    {
+        return Admin::where('id', $id)->delete();
+    }
 }

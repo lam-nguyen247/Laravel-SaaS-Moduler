@@ -3,11 +3,13 @@
 namespace App\Modules\SuperAdmin\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Modules\SuperAdmin\Requests\AdminManagement\BlockAdminRequest;
 use App\Modules\SuperAdmin\Services\AdminService;
-use App\Traits\ResponseTrait;
 use App\Modules\SuperAdmin\Requests\AdminManagement\CreateAdminRequest;
+use App\Modules\SuperAdmin\Requests\AdminManagement\BlockAdminRequest;
+use App\Modules\SuperAdmin\Requests\AdminManagement\DeleteAdminRequest;
+use App\Modules\SuperAdmin\Requests\AdminManagement\EditAdminRequest;
 use App\Modules\SuperAdmin\Transformers\AdminTransformer;
+use App\Traits\ResponseTrait;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 
@@ -127,5 +129,51 @@ class AdminManagementController extends Controller
         }
 
         return $this->successApiResponse('Unblock admin failed.', $result);
+    }
+
+    /**
+     * Delete admin by id
+     *
+     * @param DeleteAdminRequest $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function deleteAdmin(DeleteAdminRequest $request): JsonResponse
+    {
+        try {
+            $message = 'Delete admin successfully';
+            $result = $this->adminService->deleteAdmin($request->id);
+            if (!$result) {
+                $message = 'Delete admin failed';
+            }
+
+            return $this->successApiResponse($message, []);
+        } catch (\Throwable $e) {
+            return $this->errorApiResponse(Response::HTTP_INTERNAL_SERVER_ERROR, 'Delete admin failed');
+        }
+    }
+
+    /**
+     * Edit admin by id
+     *
+     * @param EditAdminRequest $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function editAdmin(EditAdminRequest $request): JsonResponse
+    {
+        try {
+            $admin = $this->adminService->findById($request->id);
+
+            if (!$admin) {
+                return $this->sendNotFoundResponse();
+            }
+
+            $result = $this->adminService->editAdmin($admin, $request->toArray());
+
+            return $this->successApiResponse('Edit admin successfully', $result);
+        } catch (\Throwable $e) {
+            return $this->errorApiResponse(Response::HTTP_INTERNAL_SERVER_ERROR, 'Edit admin failed');
+        }
     }
 }

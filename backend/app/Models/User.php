@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use App\Enums\UserStatus;
+use App\Modules\Subscription\Models\Subscription;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -66,8 +69,6 @@ class User extends Authenticatable implements JWTSubject
 
     /**
      * Get the identifier that will be stored in the subject claim of the JWT.
-     *
-     * @return mixed
      */
     public function getJWTIdentifier()
     {
@@ -81,6 +82,29 @@ class User extends Authenticatable implements JWTSubject
      */
     public function getJWTCustomClaims()
     {
-        return [];
+        return [
+            'role' => UserRole::USER,
+            'email' => $this->email,
+        ];
+    }
+
+    /**
+     * Return a value HasMany, relationship one To Many.
+     *
+     * @return HasMany
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Return a value HasMany, relationship one To Many.
+     *
+     * @return HasMany
+     */
+    public function socialAccounts(): HasMany
+    {
+        return $this->hasMany(SocialAccount::class);
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Modules\User\Services;
 
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\PasswordReset;
+use App\Models\SocialAccount;
 use App\Models\User;
 use App\Modules\User\Repositories\PasswordResetRepository;
 use App\Modules\User\Repositories\UserRepository;
@@ -13,6 +13,8 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserService extends AbstractService
 {
@@ -33,11 +35,7 @@ class UserService extends AbstractService
      */
     public function verifyLogin(array $data): ?string
     {
-        //@phpstan-ignore-next-line
-        return auth('front-api')->claims([
-            'role' => UserRole::USER,
-            'email' => $data['email'],
-        ])->attempt(array_merge($data, ['status' => UserStatus::ACTIVE]));
+        return auth('front-api')->attempt(array_merge($data, ['status' => UserStatus::ACTIVE]));
     }
 
     /**
@@ -125,5 +123,49 @@ class UserService extends AbstractService
             DB::rollBack();
             throw new Exception();
         }
+    }
+
+    /**
+     * handle callback social login
+     *
+     * @param string $provider
+     *
+     * @return ?string
+     */
+    public function handleCallbackSocial(string $provider): ?string
+    {
+        $socialUser = Socialite::driver($provider)->stateless()->user();
+
+        $account = SocialAccount::where([
+            'provider_name' => $provider,
+            'provider_id' => $socialUser->getId(),
+        ])->first();
+
+        if ($account?->user?->status === UserStatus::INACTIVE) {
+            return null;
+        }
+
+        if ($account instanceof SocialAccount) {
+            $token = JWTAuth::fromUser($account->user);
+
+            return $token;
+        }
+
+        $user = $this->repository->findOneBy(['email' => $socialUser->getEmail()]);
+
+        if (!$user instanceof User) {
+            $user = User::create([
+                'email' => $socialUser->getEmail(),
+                'first_name' => $socialUser->getName(),
+                'status' => UserStatus::ACTIVE,
+            ]);
+        }
+
+        $user->socialAccounts()->create([
+            'provider_id' => $socialUser->getId(),
+            'provider_name' => $provider,
+        ]);
+
+        return JWTAuth::fromUser($user);
     }
 }
